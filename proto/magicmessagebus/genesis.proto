@@ -1,0 +1,9 @@
+syntax = "proto3";
+package magicmessagebus.magicmessagebus;
+
+option go_package = "github.com/allinbits/magic-message-bus/x/magicmessagebus/types";
+
+// GenesisState defines the capability module's genesis state.
+message GenesisState {
+}
+
