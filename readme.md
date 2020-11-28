@@ -1,31 +1,16 @@
 # magicmessagebus
 
-**magicmessagebus** is a blockchain application built using Cosmos SDK and Tendermint and generated with [Starport](https://github.com/tendermint/starport).
+sample application to use a message bus for module communication in the cosmos-sdk
 
-## Get started
+code in this POC removes the need to pass keepers into other keeper's constructors
 
-```
-starport serve
-```
+# how to test
 
-`serve` command installs dependencies, initializes and runs the application.
+- startport serve
 
-## Configure
+in another terminal 
 
-Initialization parameters of your app are stored in `config.yml`.
+- cd /cmd/magic-message-bus
+- go run main.go tx magicmessagebus create-poll bus asd --from user1 --keyring-backend test --chain-id magicmessagebus
+- go run main.go query bank balances cosmos1xm82mkw2jkwkdgq3r0cu8f92r9t2emm8m8xpuw 
 
-### `accounts`
-
-A list of user accounts created during genesis of your application.
-
-| Key   | Required | Type            | Description                                       |
-| ----- | -------- | --------------- | ------------------------------------------------- |
-| name  | Y        | String          | Local name of the key pair                        |
-| coins | Y        | List of Strings | Initial coins with denominations (e.g. "100coin") |
-
-## Learn more
-
-- [Starport](https://github.com/tendermint/starport)
-- [Cosmos SDK documentation](https://docs.cosmos.network)
-- [Cosmos Tutorials](https://tutorials.cosmos.network)
-- [Channel on Discord](https://discord.gg/W8trcGV)
