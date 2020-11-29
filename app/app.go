@@ -3,11 +3,11 @@ package app
 import (
 	"io"
 	"os"
-    "path/filepath"
+	"path/filepath"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec/types"
-    "github.com/pelletier/go-toml"
+	"github.com/pelletier/go-toml"
 	"github.com/spf13/cast"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -15,6 +15,10 @@ import (
 	tmos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
 
+	appparams "github.com/allinbits/magic-message-bus/app/params"
+	"github.com/allinbits/magic-message-bus/x/magicmessagebus"
+	magicmessagebuskeeper "github.com/allinbits/magic-message-bus/x/magicmessagebus/keeper"
+	magicmessagebustypes "github.com/allinbits/magic-message-bus/x/magicmessagebus/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -81,11 +85,9 @@ import (
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
-	appparams "github.com/allinbits/magic-message-bus/app/params"
-	"github.com/allinbits/magic-message-bus/x/magicmessagebus"
-	magicmessagebuskeeper "github.com/allinbits/magic-message-bus/x/magicmessagebus/keeper"
-	magicmessagebustypes "github.com/allinbits/magic-message-bus/x/magicmessagebus/types"
 	// this line is used by starport scaffolding # stargate/app/moduleImport
+
+	"github.com/vardius/message-bus"
 )
 
 var (
@@ -210,11 +212,15 @@ func New(
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, capabilitytypes.StoreKey,
-        magicmessagebustypes.StoreKey,
+		magicmessagebustypes.StoreKey,
 		// this line is used by starport scaffolding # stargate/app/storeKey
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
+
+	// create message bus for inter-module communication
+	queueSize := 100
+	bus := messagebus.New(queueSize)
 
 	app := &App{
 		BaseApp:           bApp,
@@ -246,6 +252,7 @@ func New(
 	)
 	app.BankKeeper = bankkeeper.NewBaseKeeper(
 		appCodec, keys[banktypes.StoreKey], app.AccountKeeper, app.GetSubspace(banktypes.ModuleName), app.BlockedAddrs(),
+		bus,
 	)
 	stakingKeeper := stakingkeeper.NewKeeper(
 		appCodec, keys[stakingtypes.StoreKey], app.AccountKeeper, app.BankKeeper, app.GetSubspace(stakingtypes.ModuleName),
@@ -312,8 +319,13 @@ func New(
 	app.EvidenceKeeper = *evidenceKeeper
 
 	app.magicmessagebusKeeper = *magicmessagebuskeeper.NewKeeper(
-        appCodec, keys[magicmessagebustypes.StoreKey], keys[magicmessagebustypes.MemStoreKey],
+		appCodec, keys[magicmessagebustypes.StoreKey], keys[magicmessagebustypes.MemStoreKey],
+		bus,
 	)
+
+	// Set up the magic message bus
+	ctx := app.BaseApp.NewUncachedContext(true, tmproto.Header{})
+	app.BankKeeper.MagicMessageBus(ctx)
 
 	// this line is used by starport scaffolding # stargate/app/keeperDefinition
 

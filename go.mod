@@ -2,6 +2,8 @@ module github.com/allinbits/magic-message-bus
 
 go 1.15
 
+replace github.com/cosmos/cosmos-sdk => /home/ghost/git/PaddyMc/cosmos-sdk
+
 require (
 	github.com/cosmos/cosmos-sdk v0.40.0-rc3
 	github.com/gogo/protobuf v1.3.1
@@ -15,6 +17,7 @@ require (
 	github.com/spf13/cobra v1.1.1
 	github.com/tendermint/tendermint v0.34.0-rc6
 	github.com/tendermint/tm-db v0.6.2
+	github.com/vardius/message-bus v1.1.5
 	google.golang.org/genproto v0.0.0-20201014134559-03b6142f0dc9
 	google.golang.org/grpc v1.33.0
 

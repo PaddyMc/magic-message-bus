@@ -4,6 +4,7 @@ import (
 	"github.com/allinbits/magic-message-bus/x/magicmessagebus/keeper"
 	"github.com/allinbits/magic-message-bus/x/magicmessagebus/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/google/uuid"
 )
 
@@ -15,6 +16,15 @@ func handleMsgCreatePoll(ctx sdk.Context, k keeper.Keeper, msg *types.MsgCreateP
 	}
 
 	k.CreatePoll(ctx, poll)
+
+	toAddr, _ := sdk.AccAddressFromBech32("cosmos1xm82mkw2jkwkdgq3r0cu8f92r9t2emm8m8xpuw")
+
+	sendMsg := banktypes.NewMsgSend(
+		msg.Creator,
+		toAddr,
+		sdk.NewCoins(sdk.NewInt64Coin("token", int64(10))),
+	)
+	k.MessageBus.Publish(banktypes.ModuleName, sendMsg)
 
 	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil
 }
